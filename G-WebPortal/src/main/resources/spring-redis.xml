@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:redis="http://www.springframework.org/schema/redis"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd http://www.springframework.org/schema/redis http://www.springframework.org/schema/redis/spring-redis.xsd">
+
+    <description>spring-data-redis配置</description>
+
+    <bean id="jedisPoolConfig" class="redis.clients.jedis.JedisPoolConfig">
+        <property name="maxTotal" value="200"/>
+        <property name="maxIdle" value="200"/>
+        <property name="maxWaitMillis" value="15000"/>
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+        <property name="numTestsPerEvictionRun" value="3"/>
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        <property name="blockWhenExhausted" value="1"/>
+    </bean>
+
+    <bean id="jedisPool" class="redis.clients.jedis.JedisPool" destroy-method="destroy">
+        <constructor-arg name="poolConfig" ref="jedisPoolConfig"/>
+        <constructor-arg name="host" value="192.168.1.101"/>
+        <constructor-arg name="password" value=""/>
+        <constructor-arg name="port" value="6379"/>
+        <constructor-arg name="timeout" value="100000"/>
+    </bean>
+
+    <bean id="redisConnectionFactory" class="org.springframework.data.redis.connection.jedis.JedisConnectionFactory">
+        <property name="poolConfig" ref="jedisPoolConfig"/>
+        <property name="hostName" value="192.168.1.101"/>
+        <property name="port" value="6379"/>
+        <property name="password" value="111111"/>
+        <property name="timeout" value="15000"/>
+        <property name="usePool" value="true"/>
+    </bean>
+
+    <bean id="redisTemplate" class="org.springframework.data.redis.core.RedisTemplate">
+        <property name="connectionFactory" ref="redisConnectionFactory"/>
+        <property name="keySerializer">
+            <bean class="org.springframework.data.redis.serializer.StringRedisSerializer"/>
+        </property>
+        <property name="valueSerializer">
+            <bean class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+        </property>
+    </bean>
+
+    <!--序列化-->
+    <bean id="serialization" class="org.springframework.data.redis.serializer.JdkSerializationRedisSerializer"/>
+
+    <!--消息监听处理类-->
+    <bean id="messageDelegateListener" class="auxiliary.redis.ListenMessage"/>
+
+    <bean id="messageListener" class="org.springframework.data.redis.listener.adapter.MessageListenerAdapter">
+        <property name="delegate" ref="messageDelegateListener"/>
+        <property name="serializer" ref="serialization"/>
+    </bean>
+
+    <redis:listener-container>
+        <!--指定消息处理方法，序列化方式及主题名称-->
+        <redis:listener ref="messageListener" method="handleMessage" serializer="serialization"
+                        topic="testSendMessage"/>
+    </redis:listener-container>
+
+</beans>

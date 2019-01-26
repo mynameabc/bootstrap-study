@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd">
+
+<context:component-scan base-package="page, controller" />
+<mvc:annotation-driven />
+
+<mvc:annotation-driven>
+    <mvc:message-converters register-defaults="true">
+        <!-- @ResponseBody乱码问题，将StringHttpMessageConverter的默认编码设为UTF-8 -->
+        <bean class="org.springframework.http.converter.StringHttpMessageConverter">
+            <constructor-arg value="UTF-8"/>
+        </bean>
+        <!-- 配置Fastjson支持 -->
+        <bean class="com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter">
+            <property name="charset" value="UTF-8"/>
+            <property name="supportedMediaTypes">
+                <list>
+                    <value>text/html;charset=UTF-8</value>
+                    <value>application/json;charset=UTF-8</value>
+                </list>
+            </property>
+            <property name="features">
+                <list>
+                    <value>WriteMapNullValue</value>
+                    <value>QuoteFieldNames</value>
+                    <value>WriteDateUseDateFormat</value>
+                    <value>WriteEnumUsingToString</value>
+                </list>
+            </property>
+        </bean>
+    </mvc:message-converters>
+</mvc:annotation-driven>
+
+<mvc:resources location="/static/" mapping="/static/**" />
+
+<!-- SpringResourceTemplateResolver自动与Spring自己集成 -->
+<!-- 资源解决基础设施, 强烈推荐。 -->
+<bean id="templateResolver"
+      class="org.thymeleaf.spring4.templateresolver.SpringResourceTemplateResolver">
+    <property name="prefix" value="/WEB-INF/views/" />
+    <property name="suffix" value=".html" />
+    <!-- HTML是默认值, 为了清楚起见, 在此处添加。 -->
+    <property name="templateMode" value="HTML" />
+    <!-- 默认情况下, 模板缓存为true。如果您想要设置为false -->
+    <!-- 模板在修改时自动更新。 -->
+    <property name="cacheable" value="false" />
+    <property name="characterEncoding" value="UTF-8" />
+</bean>
+
+<!-- SpringTemplateEngine自动应用SpringStandardDialect并 -->
+<!-- 使用Spring自己的MessageSource消息解析机制。 -->
+<bean id="templateEngine" class="org.thymeleaf.spring4.SpringTemplateEngine">
+    <property name="templateResolver" ref="templateResolver" />
+    <!-- 使用Spring 4.2.4或更高版本启用Spring EL编译器 -->
+    <!-- 可以加快大多数情况下的执行速度, 但是当一个模板中 -->
+    <!-- 的表达式在不同数据类型之间重用时, -->
+    <!-- 可能与特定情况不兼容, 因此该标志默认为“false” -->
+    <!-- 以实现更安全的向后兼容性。 -->
+    <property name="enableSpringELCompiler" value="true" />
+</bean>
+
+<bean class="org.thymeleaf.spring4.view.ThymeleafViewResolver">
+    <property name="templateEngine" ref="templateEngine" />
+    <property name="characterEncoding"  value="UTF-8" />
+</bean>
+    
+<!--<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+    <property name="prefix" value="/WEB-INF/views/" />
+    <property name="suffix" value=".html" />
+</bean>-->
+
+<!-- 验证拦截 -->
+<!--<mvc:interceptors>
+    <bean class="org.devefx.validator.external.spring.mvc.SpringValidatorInterceptor"/>
+</mvc:interceptors>-->
+
+<!--<mvc:interceptors>
+    <mvc:interceptor>&lt;!&ndash;配置局部拦截器，需要满足下列路径条件&ndash;&gt;
+        <mvc:mapping path="/**"/>
+
+        <mvc:exclude-mapping path="/index.htm" />               &lt;!&ndash; 首页 &ndash;&gt;
+
+        &lt;!&ndash; 静态页面 &ndash;&gt;
+        <mvc:exclude-mapping path="/initSignIn.htm" />          &lt;!&ndash; 登陆 &ndash;&gt;
+        <mvc:exclude-mapping path="/initSignUp.htm" />          &lt;!&ndash; 注册 &ndash;&gt;
+        <mvc:exclude-mapping path="/404.htm" />                 &lt;!&ndash; 404 &ndash;&gt;
+        <mvc:exclude-mapping path="/500.htm" />                 &lt;!&ndash; 500 &ndash;&gt;
+
+        &lt;!&ndash; 业务 &ndash;&gt;
+        <mvc:exclude-mapping path="/signIn.htm" />          &lt;!&ndash; 登陆 &ndash;&gt;
+        <mvc:exclude-mapping path="/signUp.htm" />          &lt;!&ndash; 注册 &ndash;&gt;
+        <mvc:exclude-mapping path="/signOut.htm" />         &lt;!&ndash; 注销 &ndash;&gt;
+
+        <bean class="auxiliary.Interceptors.ProtalLoginInterceptor"/>&lt;!&ndash;登陆拦截器&ndash;&gt;
+    </mvc:interceptor>
+</mvc:interceptors>-->
+
+</beans>

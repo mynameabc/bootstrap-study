@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>v-for指令 ：解决模板循环问题</title>
+</head>
+<body>
+
+<div id="app">
+
+    <ul>
+        <li v-for="item in sortItems">
+            {{item}}
+        </li>
+    </ul>
+
+    <ul>
+        <li v-for="(item, index) in dataList">
+            {{index}} - {{item.name}} - {{item.age}}
+        </li>
+    </ul>
+
+</div>
+
+</body>
+<script type="text/javascript" src="../static/lib/vue-2.5.1.js"></script>
+<script type="text/javascript" src="../static/project/js/views/one/lesson_3.js"></script>
+</html>
