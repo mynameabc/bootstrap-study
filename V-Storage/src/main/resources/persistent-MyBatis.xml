@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.0.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+<!--    <import resource="classpath*:dataSource/dataSource.xml" />-->
+
+<!--    <bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver" />
+        <property name="url" value="${master.url}" />
+        <property name="username" value="${master.username}" />
+        <property name="password" value="${master.password}"/>
+        <property name="maxActive" value="30" />
+        <property name="maxIdle" value="10" />
+        <property name="maxWait" value="1000" />
+        <property name="defaultAutoCommit" value="true" />
+    </bean>-->
+
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" init-method="init" destroy-method="close">
+        <property name="driverClassName" value="${jdbc.driver}"/>
+        <property name="url" value="${master.url}"/>
+        <property name="username" value="${master.username}"/>
+        <property name="password" value="${master.password}"/>
+
+        <property name="filters" value="stat"/>
+
+        <property name="maxActive" value="20"/>
+        <property name="initialSize" value="1"/>
+        <property name="maxWait" value="60000"/>
+        <property name="minIdle" value="1"/>
+
+        <property name="timeBetweenEvictionRunsMillis" value="60000"/>
+        <property name="minEvictableIdleTimeMillis" value="300000"/>
+
+        <property name="validationQuery" value="SELECT 'x'"/>
+        <property name="testWhileIdle" value="true"/>
+        <property name="testOnBorrow" value="false"/>
+        <property name="testOnReturn" value="false"/>
+    </bean>
+
+    <!-- 配置sqlsessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource" />
+        <property name="configLocation" value="classpath:SqlMapConfig.xml" />
+        <property name="typeAliasesPackage" value="model.entity" />
+        <property name="mapperLocations">
+            <array>
+                <value>classpath:xml/*/*.xml</value>
+                <value>classpath*:soft/*/*/mapper/xml/*.xml</value>
+                <value>classpath*:service/*/storage/*.xml</value>
+                <value>classpath*:service/*/*/storage/*.xml</value>
+                <value>classpath*:sys/*/storage/*.xml</value>
+<!--                <value>classpath*:*/*/*/storage/*.xml</value>
+                <value>classpath*:service/member/detailed/storage/*.xml</value>-->
+            </array>
+        </property>
+    </bean>
+
+    <bean class="tk.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+        <property name="basePackage" value="com.mapper, classpath*:soft.*.*.mapper, sys.*.storage, service.*.storage, service.*.*.storage"/>
+        <property name="properties">
+            <value>
+                mappers=tk.mybatis.mapper.common.Mapper
+            </value>
+        </property>
+    </bean>
+
+    <!-- 配置扫描包，加载mapper代理对象 -->
+<!--    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+        <property name="basePackage" value="com.mapper" />
+    </bean>-->
+
+    <!-- 事务管理器 -->
+    <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <!-- 开启事务控制的注解支持 -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+</beans>
