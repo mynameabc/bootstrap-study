@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="sys.employee.storage.ExtendEmployeeMapper" >
+    <resultMap id="BaseResultEmployeeExtendMap" type="model.entity.extend.EmployeeExtend" extends="com.mapper.EmployeeMapper.BaseResultMap">
+        <result column="officeName" property="officeName" jdbcType="VARCHAR" />
+    </resultMap>
+    <select id="getEmployeeList" resultMap="BaseResultEmployeeExtendMap">
+        SELECT office.`name` AS officeName, employee.* FROM `sys_employee` AS employee LEFT JOIN `sys_office` AS office ON employee.`officeID` = office.`officeID`
+        <where>
+            <if test="employeeDTO.name != null">
+                and name = #{employeeDTO.name}
+            </if>
+            <if test="employeeDTO.email != null">
+                and email = #{employeeDTO.email}
+            </if>
+            <if test="employeeDTO.mobile != null">
+                and mobile = #{employeeDTO.mobile}
+            </if>
+            <if test="employeeDTO.jobNumber != null">
+                and jobNumber = #{employeeDTO.jobNumber}
+            </if>
+            <if test="employeeDTO.realName != null">
+                and realName = #{employeeDTO.realName}
+            </if>
+            <if test="employeeDTO.loginLock != -1">
+                and loginLock = #{employeeDTO.loginLock}
+            </if>
+            <if test="employeeDTO.delFlag != -1">
+                and delFlag = #{employeeDTO.delFlag}
+            </if>
+            <if test="employeeDTO.officeID != null">
+                and office.officeID IN
+                <foreach collection="officeIDSList" index="index" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </select>
+
+</mapper>

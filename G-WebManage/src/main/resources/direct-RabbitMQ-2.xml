@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:task="http://www.springframework.org/schema/task"
+       xmlns:rabbit="http://www.springframework.org/schema/rabbit"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   	http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/context
+		http://www.springframework.org/schema/context/spring-context-4.0.xsd
+		http://www.springframework.org/schema/jee
+		http://www.springframework.org/schema/jee/spring-jee-4.0.xsd
+		http://www.springframework.org/schema/mvc
+		http://www.springframework.org/schema/mvc/spring-mvc-4.0.xsd
+		http://www.springframework.org/schema/tx
+		http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+		http://www.springframework.org/schema/aop
+		http://www.springframework.org/schema/aop/spring-aop-4.0.xsd
+		http://www.springframework.org/schema/task
+		http://www.springframework.org/schema/task/spring-task-4.0.xsd
+		http://www.springframework.org/schema/rabbit
+		http://www.springframework.org/schema/rabbit/spring-rabbit-2.0.xsd">
+
+    <rabbit:connection-factory id="connectionFactory"
+                               host="192.168.1.101"
+                               port="5672"
+                               username="admin"
+                               password="admin"
+                               channel-cache-size="8" />
+
+    <!--通过指定下面的admin信息，当前producer中的exchange和queue会在rabbitmq服务器上自动生成 -->
+    <rabbit:admin connection-factory="connectionFactory"/>
+
+    <!--定义rabbit template -->
+    <rabbit:template id="rabbitTemplate" connection-factory="connectionFactory"/>
+
+    <!-- *******************************************短信/邮件/APP推送************************************************ -->
+
+    <!--定义queue -->
+    <rabbit:queue name="smsQueue" durable="true" auto-delete="false" exclusive="false"/>        <!-- 短信队列 -->
+    <rabbit:queue name="emailQueue" durable="true" auto-delete="false" exclusive="false"/>      <!-- 邮件队列 -->
+    <rabbit:queue name="appPushQueue" durable="true" auto-delete="false" exclusive="false"/>    <!-- App推送队列 -->
+
+    <!-- 定义notifyExchange 绑定smsQueue, emailQueue, appPushQueue-->
+    <rabbit:direct-exchange name="notifyExchange" durable="true" auto-delete="false">
+        <rabbit:bindings>
+            <rabbit:binding queue="smsQueue" key="SMS" />
+            <rabbit:binding queue="emailQueue" key="Email" />
+            <rabbit:binding queue="appPushQueue" key="AppPush" />
+        </rabbit:bindings>
+    </rabbit:direct-exchange>
+
+    <!-- 消费者 -->
+    <bean id="directSMSConsumer" class="BaseFacilities.MQ.unit.notify.SMSConsumer" />
+    <bean id="directEmailConsumer" class="BaseFacilities.MQ.unit.notify.EmailConsumer" />
+    <bean id="directAppPushConsumer" class="BaseFacilities.MQ.unit.notify.AppPushConcumer" />
+
+    <!-- queue litener  观察 监听模式 当有消息到达时会通知监听在对应的队列上的监听对象-->
+    <rabbit:listener-container connection-factory="connectionFactory" concurrency="3">
+        <rabbit:listener queues="smsQueue" ref="directSMSConsumer" />
+        <rabbit:listener queues="emailQueue" ref="directEmailConsumer" />
+        <rabbit:listener queues="appPushQueue" ref="directAppPushConsumer" />
+    </rabbit:listener-container>
+
+    <!-- *******************************************短信/邮件/APP推送************************************************ -->
+
+
+
+    <!-- **************************************************日志***************************************************** -->
+
+    <rabbit:queue name="logQueue" durable="true" auto-delete="false" exclusive="false"/>        <!-- 日志队列 -->
+
+
+
+    <!-- **************************************************日志***************************************************** -->
+
+
+    <!-- **************************************************订单***************************************************** -->
+
+    <rabbit:queue name="orderQueue"/>      <!-- 订单队列 -->
+
+    <!-- **************************************************订单***************************************************** -->
+
+</beans>
+
